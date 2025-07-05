@@ -7,52 +7,197 @@
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <div id="app">
-        <!-- Login Form -->
-        <div id="login-container" class="container">
-            <div class="login-form">
-                <h2>Sales Management System</h2>
-                <form id="login-form">
-                    <div class="form-group">
-                        <label for="username">Username:</label>
-                        <input type="text" id="username" name="username" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="password">Password:</label>
-                        <input type="password" id="password" name="password" required>
-                    </div>
-                    <button type="submit">Login</button>
-                </form>
-                <div id="login-error" class="error-message"></div>
-            </div>
+    <!-- Login Container -->
+    <div id="login-container">
+        <div class="login-card">
+            <h1>Sales Management System</h1>
+            <form id="login-form">
+                <div class="form-group">
+                    <label for="username">Username:</label>
+                    <input type="text" id="username" name="username" required>
+                </div>
+                <div class="form-group">
+                    <label for="password">Password:</label>
+                    <input type="password" id="password" name="password" required>
+                </div>
+                <button type="submit" class="btn btn-primary w-full">Login</button>
+                <div id="login-error" class="error-message hidden"></div>
+            </form>
         </div>
+    </div>
 
-        <!-- Dashboard Container -->
-        <div id="dashboard-container" class="container" style="display: none;">
-            <header class="header">
-                <h1>Sales Management System</h1>
-                <div class="user-info">
-                    <span id="user-name"></span>
-                    <span id="user-role"></span>
-                    <button id="logout-btn">Logout</button>
+    <!-- Dashboard Container -->
+    <div id="dashboard-container">
+        <!-- Header -->
+        <header class="header">
+            <h1>Sales Management System</h1>
+            <div class="user-info">
+                <div class="user-details">
+                    <div class="user-name" id="user-name">User Name</div>
+                    <div class="user-role" id="user-role">Role</div>
                 </div>
-            </header>
+                <button id="logout-btn" class="btn btn-secondary btn-sm">Logout</button>
+            </div>
+        </header>
 
-            <nav class="navigation">
-                <ul id="nav-menu">
-                    <!-- Navigation items will be populated based on user role -->
-                </ul>
-            </nav>
+        <!-- Navigation -->
+        <nav class="nav-tabs" id="navigation">
+            <!-- Navigation will be populated by JavaScript based on user role -->
+        </nav>
 
-            <main class="main-content">
-                <div id="content-area">
-                    <!-- Content will be loaded dynamically -->
+        <!-- Main Content -->
+        <main class="main-content">
+            <div id="content-area">
+                <!-- Content will be loaded here dynamically -->
+            </div>
+        </main>
+    </div>
+
+    <!-- User Management Modal -->
+    <div id="user-modal" class="modal">
+        <div class="modal-content">
+            <h3 id="user-modal-title">Add New User</h3>
+            <form id="user-form">
+                <div class="form-group">
+                    <label for="user-username">Username:</label>
+                    <input type="text" id="user-username" name="username" required>
                 </div>
-            </main>
+                <div class="form-group">
+                    <label for="user-full-name">Full Name:</label>
+                    <input type="text" id="user-full-name" name="full_name" required>
+                </div>
+                <div class="form-group">
+                    <label for="user-email">Email:</label>
+                    <input type="email" id="user-email" name="email">
+                </div>
+                <div class="form-group">
+                    <label for="user-phone">Phone:</label>
+                    <input type="tel" id="user-phone" name="phone">
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="user-role">Role:</label>
+                        <select id="user-role" name="role" required>
+                            <option value="">Select Role</option>
+                            <option value="sales_person">Sales Person</option>
+                            <option value="sub_manager">Sub Manager</option>
+                            <option value="top_manager">Top Manager</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="user-sub-manager">Sub Manager:</label>
+                        <select id="user-sub-manager" name="sub_manager_id">
+                            <option value="">None</option>
+                            <!-- Will be populated dynamically -->
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="user-password">Password:</label>
+                    <input type="password" id="user-password" name="password" placeholder="Leave blank to keep current password">
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" onclick="app.closeUserModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save User</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Product Management Modal -->
+    <div id="product-modal" class="modal">
+        <div class="modal-content">
+            <h3 id="product-modal-title">Add New Product</h3>
+            <form id="product-form">
+                <div class="form-group">
+                    <label for="product-name">Product Name:</label>
+                    <input type="text" id="product-name" name="name" required>
+                </div>
+                <div class="form-group">
+                    <label for="product-description">Description:</label>
+                    <textarea id="product-description" name="description"></textarea>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="cost-price">Cost Price:</label>
+                        <input type="number" id="cost-price" name="cost_price" step="0.01" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="selling-price">Selling Price:</label>
+                        <input type="number" id="selling-price" name="selling_price" step="0.01" required>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="stock-quantity">Stock Quantity:</label>
+                        <input type="number" id="stock-quantity" name="stock_quantity" min="0" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="commission-rate">Commission Rate (%):</label>
+                        <input type="number" id="commission-rate" name="commission_rate" step="0.1" min="0" max="100" required>
+                    </div>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" onclick="app.closeProductModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Product</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Loan Application Modal -->
+    <div id="loan-modal" class="modal">
+        <div class="modal-content">
+            <h3>Apply for Loan</h3>
+            <form id="loan-form">
+                <div class="form-group">
+                    <label for="loan-amount">Loan Amount:</label>
+                    <input type="number" id="loan-amount" name="amount" step="0.01" min="1" required>
+                </div>
+                <div class="form-group">
+                    <label for="duration">Duration (months):</label>
+                    <select id="duration" name="duration_months" required>
+                        <option value="">Select Duration</option>
+                        <option value="6">6 months</option>
+                        <option value="12">12 months</option>
+                        <option value="18">18 months</option>
+                        <option value="24">24 months</option>
+                        <option value="36">36 months</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="interest-rate">Interest Rate (%):</label>
+                    <input type="number" id="interest-rate" step="0.1" readonly>
+                </div>
+                <div class="form-group">
+                    <label for="monthly-payment">Monthly Payment:</label>
+                    <input type="number" id="monthly-payment" step="0.01" readonly>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" onclick="app.closeLoanModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Apply for Loan</button>
+                </div>
+            </form>
         </div>
     </div>
 
     <script src="app.js"></script>
+    <script>
+        // Initialize the application
+        const app = new SalesManagementApp();
+        
+        // Setup form event listeners
+        document.getElementById('user-form').addEventListener('submit', (e) => app.handleUserSubmit(e));
+        document.getElementById('product-form').addEventListener('submit', (e) => app.handleProductSubmit(e));
+        document.getElementById('loan-form').addEventListener('submit', (e) => app.handleLoanApplication(e));
+        
+        // Close modals when clicking outside
+        document.addEventListener('click', (e) => {
+            if (e.target.classList.contains('modal')) {
+                e.target.style.display = 'none';
+            }
+        });
+    </script>
 </body>
 </html>
 

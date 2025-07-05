@@ -140,6 +140,58 @@ class FinancialService {
             });
         });
     }
+
+    // Get financial report
+    getFinancialReport() {
+        return new Promise((resolve, reject) => {
+            // Get current fund balances
+            this.db.all('SELECT * FROM financial_funds', [], (err, funds) => {
+                if (err) {
+                    reject(err);
+                    return;
+                }
+
+                // Get sales summary
+                this.db.get(`
+                    SELECT 
+                        COUNT(*) as total_sales,
+                        SUM(total_amount) as total_revenue,
+                        SUM(profit) as total_profit,
+                        SUM(commission) as total_commission
+                    FROM sales 
+                    WHERE status = 'approved'
+                `, [], (err, salesSummary) => {
+                    if (err) {
+                        reject(err);
+                        return;
+                    }
+
+                    // Get loan summary
+                    this.db.get(`
+                        SELECT 
+                            COUNT(*) as total_loans,
+                            SUM(amount) as total_loan_amount,
+                            COUNT(CASE WHEN status = 'active' THEN 1 END) as active_loans,
+                            COUNT(CASE WHEN status = 'completed' THEN 1 END) as completed_loans
+                        FROM loans
+                    `, [], (err, loanSummary) => {
+                        if (err) {
+                            reject(err);
+                        } else {
+                            resolve({
+                                funds: funds.reduce((acc, fund) => {
+                                    acc[fund.fund_type] = fund.amount;
+                                    return acc;
+                                }, {}),
+                                sales: salesSummary || {},
+                                loans: loanSummary || {}
+                            });
+                        }
+                    });
+                });
+            });
+        });
+    }
 }
 
 module.exports = FinancialService;

@@ -133,6 +133,70 @@ class AuthService {
             }
         };
     }
+    // Get all users (for top manager)
+    getAllUsers() {
+        return new Promise((resolve, reject) => {
+            this.db.all(`
+                SELECT id, username, role, full_name, email, phone, sub_manager_id, created_at,
+                       (SELECT full_name FROM users u2 WHERE u2.id = users.sub_manager_id) as sub_manager_name
+                FROM users 
+                ORDER BY created_at DESC
+            `, [], (err, users) => {
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve(users);
+                }
+            });
+        });
+    }
+
+    // Update user
+    async updateUser(userId, userData) {
+        const { username, role, full_name, email, phone, sub_manager_id, password } = userData;
+        
+        try {
+            let query = `
+                UPDATE users 
+                SET username = ?, role = ?, full_name = ?, email = ?, phone = ?, sub_manager_id = ?
+            `;
+            let params = [username, role, full_name, email, phone, sub_manager_id];
+
+            if (password && password.trim() !== '') {
+                const hashedPassword = await bcrypt.hash(password, 10);
+                query += ', password = ?';
+                params.push(hashedPassword);
+            }
+
+            query += ' WHERE id = ?';
+            params.push(userId);
+
+            return new Promise((resolve, reject) => {
+                this.db.run(query, params, function(err) {
+                    if (err) {
+                        reject(err);
+                    } else {
+                        resolve({ success: true, changes: this.changes });
+                    }
+                });
+            });
+        } catch (error) {
+            throw error;
+        }
+    }
+
+    // Delete user
+    deleteUser(userId) {
+        return new Promise((resolve, reject) => {
+            this.db.run('DELETE FROM users WHERE id = ?', [userId], function(err) {
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve({ success: true, changes: this.changes });
+                }
+            });
+        });
+    }
 }
 
 module.exports = AuthService;

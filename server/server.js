@@ -367,3 +367,61 @@ app.get('/api/default-interest-rate', authService.requireAuth, async (req, res) 
     }
 });
 
+
+// User management routes (Top Manager only)
+app.get('/api/users', authService.requireAuth, authService.requireRole(['top_manager']), async (req, res) => {
+    try {
+        const users = await authService.getAllUsers();
+        res.json({ users });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+app.put('/api/users/:id', authService.requireAuth, authService.requireRole(['top_manager']), async (req, res) => {
+    try {
+        const result = await authService.updateUser(req.params.id, req.body);
+        res.json(result);
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+});
+
+app.delete('/api/users/:id', authService.requireAuth, authService.requireRole(['top_manager']), async (req, res) => {
+    try {
+        const result = await authService.deleteUser(req.params.id);
+        res.json(result);
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+});
+
+// Reports routes
+app.get('/api/reports/sales', authService.requireAuth, authService.requireRole(['top_manager', 'sub_manager']), async (req, res) => {
+    try {
+        const { start_date, end_date } = req.query;
+        const report = await salesService.getSalesReport(start_date, end_date, req.session.user);
+        res.json({ report });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+app.get('/api/reports/financial', authService.requireAuth, authService.requireRole(['top_manager']), async (req, res) => {
+    try {
+        const report = await financialService.getFinancialReport();
+        res.json({ report });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+app.get('/api/reports/loans', authService.requireAuth, authService.requireRole(['top_manager', 'sub_manager']), async (req, res) => {
+    try {
+        const report = await loanService.getLoansReport(req.session.user);
+        res.json({ report });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+

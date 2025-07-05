@@ -307,6 +307,61 @@ class SalesService {
             });
         });
     }
+    // Get sales report
+    getSalesReport(startDate, endDate, user) {
+        return new Promise((resolve, reject) => {
+            let query = `
+                SELECT s.*, p.name as product_name, u.full_name as sales_person_name,
+                       sm.full_name as sub_manager_name
+                FROM sales s
+                JOIN products p ON s.product_id = p.id
+                JOIN users u ON s.sales_person_id = u.id
+                LEFT JOIN users sm ON u.sub_manager_id = sm.id
+                WHERE 1=1
+            `;
+            let params = [];
+
+            if (startDate) {
+                query += ' AND DATE(s.created_at) >= ?';
+                params.push(startDate);
+            }
+
+            if (endDate) {
+                query += ' AND DATE(s.created_at) <= ?';
+                params.push(endDate);
+            }
+
+            // If sub-manager, only show their team's sales
+            if (user.role === 'sub_manager') {
+                query += ' AND u.sub_manager_id = ?';
+                params.push(user.id);
+            }
+
+            query += ' ORDER BY s.created_at DESC';
+
+            this.db.all(query, params, (err, sales) => {
+                if (err) {
+                    reject(err);
+                } else {
+                    // Calculate summary statistics
+                    const totalSales = sales.length;
+                    const totalRevenue = sales.reduce((sum, sale) => sum + (sale.total_amount || 0), 0);
+                    const totalProfit = sales.reduce((sum, sale) => sum + (sale.profit || 0), 0);
+                    const totalCommission = sales.reduce((sum, sale) => sum + (sale.commission || 0), 0);
+
+                    resolve({
+                        sales,
+                        summary: {
+                            totalSales,
+                            totalRevenue,
+                            totalProfit,
+                            totalCommission
+                        }
+                    });
+                }
+            });
+        });
+    }
 }
 
 module.exports = SalesService;

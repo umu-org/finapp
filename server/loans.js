@@ -299,6 +299,55 @@ class LoanService {
             });
         });
     }
+
+    // Get loans report
+    getLoansReport(user) {
+        return new Promise((resolve, reject) => {
+            let query = `
+                SELECT l.*, u.full_name as borrower_name,
+                       sm.full_name as sub_manager_name,
+                       approver.full_name as approver_name
+                FROM loans l
+                JOIN users u ON l.borrower_id = u.id
+                LEFT JOIN users sm ON u.sub_manager_id = sm.id
+                LEFT JOIN users approver ON l.approved_by = approver.id
+                WHERE 1=1
+            `;
+            let params = [];
+
+            // If sub-manager, only show their team's loans
+            if (user.role === 'sub_manager') {
+                query += ' AND u.sub_manager_id = ?';
+                params.push(user.id);
+            }
+
+            query += ' ORDER BY l.created_at DESC';
+
+            this.db.all(query, params, (err, loans) => {
+                if (err) {
+                    reject(err);
+                } else {
+                    // Calculate summary statistics
+                    const totalLoans = loans.length;
+                    const totalAmount = loans.reduce((sum, loan) => sum + (loan.amount || 0), 0);
+                    const activeLoans = loans.filter(loan => loan.status === 'active').length;
+                    const completedLoans = loans.filter(loan => loan.status === 'completed').length;
+                    const pendingLoans = loans.filter(loan => loan.status === 'pending').length;
+
+                    resolve({
+                        loans,
+                        summary: {
+                            totalLoans,
+                            totalAmount,
+                            activeLoans,
+                            completedLoans,
+                            pendingLoans
+                        }
+                    });
+                }
+            });
+        });
+    }
 }
 
 module.exports = LoanService;
